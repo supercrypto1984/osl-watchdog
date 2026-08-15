@@ -1,0 +1,21 @@
+name: OpenSea Watchdog
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 运行双保险守护
+        env:
+          MAIN_WORKER_URL: ${{ secrets.MAIN_WORKER_URL }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          GITHUB_TOKENS: ${{ secrets.GITHUB_TOKENS }}
+          REPOS: ${{ secrets.REPOS }}
+        run: node watchdog.js
