@@ -9,10 +9,17 @@ const fs = require('fs');
 const MAIN_WORKER_URL = process.env.MAIN_WORKER_URL; // 含 ?key=...&mode=ping
 const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
 const TG_CHAT_ID = process.env.TG_CHAT_ID;
-// 去掉可能的 BOM/空白，再解析（PowerShell 管道写 secret 可能带 BOM）
+// 去掉可能的 BOM/空白（PowerShell 管道写 secret 可能带 BOM/编码污染）
 const clean = (s) => (s || '').replace(/^\ufeff/, '').trim();
-const GH_TOKENS = JSON.parse(clean(process.env.GH_TOKENS) || '{}'); // {账号: token}（GitHub 禁 GITHUB_ 前缀，用 GH_TOKENS）
-const REPOS = JSON.parse(clean(process.env.REPOS) || '{}'); // {账号: [{c, repo}]}
+// secret 值统一存 base64（免疫 BOM/编码污染），兼容纯 JSON 老值
+const parseSecret = (s, fb) => {
+  const raw = clean(s);
+  if (!raw) return fb;
+  try { return JSON.parse(raw); } catch (e) {}
+  try { return JSON.parse(Buffer.from(raw, 'base64').toString('utf8')); } catch (e) { return fb; }
+};
+const GH_TOKENS = parseSecret(process.env.GH_TOKENS, {}); // {账号: token}（GitHub 禁 GITHUB_ 前缀，用 GH_TOKENS）
+const REPOS = parseSecret(process.env.REPOS, {}); // {账号: [{c, repo}]}
 const STATE_FILE = process.env.STATE_FILE || '/tmp/watchdog-state.json'; // GitHub Actions 用 /tmp
 
 function loadState() {
