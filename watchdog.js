@@ -9,7 +9,7 @@ const fs = require('fs');
 const MAIN_WORKER_URL = process.env.MAIN_WORKER_URL; // 含 ?key=...&mode=ping
 const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
 const TG_CHAT_ID = process.env.TG_CHAT_ID;
-const GH_TOKENS = JSON.parse(process.env.GITHUB_TOKENS || '{}'); // {账号: token}
+const GH_TOKENS = JSON.parse(process.env.GH_TOKENS || '{}'); // {账号: token}（GitHub 禁 GITHUB_ 前缀，用 GH_TOKENS）
 const REPOS = JSON.parse(process.env.REPOS || '{}'); // {账号: [{c, repo}]}
 const STATE_FILE = process.env.STATE_FILE || '/tmp/watchdog-state.json'; // GitHub Actions 用 /tmp
 
