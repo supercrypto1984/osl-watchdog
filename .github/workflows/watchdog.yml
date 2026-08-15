@@ -16,6 +16,6 @@ jobs:
           MAIN_WORKER_URL: ${{ secrets.MAIN_WORKER_URL }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          GITHUB_TOKENS: ${{ secrets.GITHUB_TOKENS }}
+          GH_TOKENS: ${{ secrets.GH_TOKENS }}
           REPOS: ${{ secrets.REPOS }}
         run: node watchdog.js
