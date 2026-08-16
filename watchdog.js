@@ -38,14 +38,30 @@ async function api(method, url, token, body) {
   return { status: r.status };
 }
 
+// 可靠版 sendTG：检查状态码 + 429 退避 + 重试 + 截断（Telegram 上限 4096）
 async function sendTG(text) {
-  try {
-    await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: TG_CHAT_ID, text }),
-    });
-  } catch (e) {}
+  const safe = String(text || '').slice(0, 4000);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: TG_CHAT_ID, text: safe }),
+      });
+      if (r.ok) return true;
+      if (r.status === 429 && attempt < 2) {
+        await new Promise(res => setTimeout(res, 2000 * (attempt + 1)));
+        continue;
+      }
+      console.error('[sendTG] 失败 status=' + r.status + ' text=' + safe.slice(0, 80));
+      return false;
+    } catch (e) {
+      if (attempt < 2) { await new Promise(res => setTimeout(res, 1000 * (attempt + 1))); continue; }
+      console.error('[sendTG] 网络错误: ' + e.message);
+      return false;
+    }
+  }
+  return false;
 }
 
 async function takeover() {
